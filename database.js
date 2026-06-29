@@ -14,11 +14,14 @@ const pool = new pg.Pool({
 
 // Monkey patch .query(...) method to console log all queries before executing it
 // For debugging purpose
-const oldQuery = pool.query;
-pool.query = function (...args) {
+// Only log queries in development mode
+if (process.env.NODE_ENV === 'development') {
+  const oldQuery = pool.query;
+  pool.query = function (...args) {
     const [sql, params] = args;
-    console.log(`EXECUTING QUERY |`, sql, params);
+    console.log(`EXECUTING QUERY | `, sql, params);
     return oldQuery.apply(pool, args);
-};
+  };
+}
 
 module.exports = pool;
