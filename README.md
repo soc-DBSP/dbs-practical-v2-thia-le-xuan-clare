@@ -12,7 +12,7 @@
     DB_HOST=
     DB_DATABASE=
     DB_CONNECTION_LIMIT=1
-    PORT=3000
+    PORT=3001
     
     JWT_SECRET_KEY=your-secret-key
     JWT_EXPIRES_IN=1d

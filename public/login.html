@@ -18,11 +18,11 @@
     </form>
 
     <h5>
-        <ul>        
+        <ul>
             <li>On PgAdmin, prepare a new database and restore the tables and data with the given sql file</li>
             <li>The database has been <strong>seeded</strong> with user data.</li>
             <li>admin user role - <b>user account no:</b>S001 <b>, password:</b>password <br /> </li>
-            <li>normal user role - <b>user account no:</b>S002 <b>, password:</b>password <br /> </li>            
+            <li>normal user role - <b>user account no:</b>S002 <b>, password:</b>password <br /> </li>
             <li>Inspect the user account table for more information on all the <b>seeded</b> user records</li>
         </ul>
     </h5>
@@ -35,7 +35,7 @@
             var password = document.getElementById("password").value;
 
             // Send the request with the accountNo and password as JSON data using fetch
-            fetch("http://localhost:3000/auth/login", {
+            fetch("http://localhost:3001/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

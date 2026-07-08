@@ -1,73 +1,104 @@
-const { query } = require('../database');
-const { EMPTY_RESULT_ERROR, SQL_ERROR_CODE, UNIQUE_VIOLATION_ERROR } = require('../errors');
+const { PrismaClient, Prisma } = require("@prisma/client");
+const prisma = new PrismaClient();
 
 module.exports.create = function create(code, name, credit) {
-return query('CALL create_module($1, $2, $3)', [code, name, credit])
-.then(function (result) {
-console.log('Module created successfully');
-})
-.catch(function (error) {
-throw error;
-});
-};
-
-module.exports.retrieveByCode = function retrieveByCode(code) {
-    const sql = `SELECT * FROM module WHERE mod_code = $1`;
-    return query(sql, [code]).then(function (result) {
-        const rows = result.rows;
-
-        if (rows.length === 0) {
-            // Note: result.rowCount returns the number of rows processed instead of returned
-            // Read more: https://node-postgres.com/apis/result#resultrowcount-int--null
-            throw new EMPTY_RESULT_ERROR(`Module ${code} not found!`);
+  return prisma.module
+    .create({
+      data: {
+        modCode: code,
+        modName: name,
+        creditUnit: Number(credit),
+      },
+    })
+    .then(function (module) {
+      return module;
+    })
+    .catch(function (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // The .code property can be accessed in a type-safe manner
+        if (error.code === "P2002") {
+          console.log(
+            "There is a unique constraint violation, a new module cannot be created with this module code and name",
+          );
+          throw new Error(`The module ${code} already exists`);
         }
-
-        return rows[0];
+      }
+      throw error;
     });
 };
 
 module.exports.updateByCode = function updateByCode(code, credit) {
-    // Now using stored procedure instead of raw SQL
-    // Error handling is done in the stored procedure itself
-    return query('CALL update_module($1, $2)', [code, credit])
-        .then(function (result) {
-            console.log('Module updated successfully');
-        })
-        .catch(function (error) {
-            throw error;
-        });
+  return prisma.module
+    .update({
+      where: {
+        modCode: code,
+      },
+      data: {
+        creditUnit: Number(credit),
+      },
+    })
+    .then(function (module) {
+      // Leave blank
+    })
+    .catch(function (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // The .code property can be accessed in a type-safe manner
+        if (error.code === "P2025") {
+          console.log(
+            "There is a unique constraint violation, this module cannot be updated with this module code",
+          );
+          throw new Error(`The module ${code} does not exists`);
+        }
+      }
+      throw error;
+    });
 };
 
 module.exports.deleteByCode = function deleteByCode(code) {
-    // Now using stored procedure instead of raw SQL
-    // Error handling is done in the stored procedure itself
-    return query('CALL delete_module($1)', [code])
-        .then(function (result) {
-            console.log('Module deleted successfully');
-        })
-        .catch(function (error) {
-            throw error;
-        });
+  return prisma.module
+    .delete({
+      where: {
+        modCode: code
+      }
+    })
+    .then(function (module) {
+      // Leave blank
+    })
+    .catch(function (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // The .code property can be accessed in a type-safe manner
+        if (error.code === "P2025") {
+          console.log(
+            "There is a unique constraint violation, this module cannot be deleted with this module code",
+          );
+          throw new Error(`The module ${code} does not exists`);
+        }
+      }
+      throw error;
+    });
 };
 
 module.exports.retrieveAll = function retrieveAll() {
-// retrieve students via stored procedure
-const sql = `SELECT adm_no, stud_name, gender, crse_code, gpa, gpa_last_updated FROM student`;
-return query(sql).then(function (result) {
-return result.rows;
-});
+  return prisma.module.findMany();
 };
 
-module.exports.retrieveBulk = function retrieveBulk(codes) {
-    const sql = 'SELECT * FROM module WHERE code IN ($1)';
-    return query(sql, [codes]).then(function (response) {
-        const rows = response.rows;
-        const result = {};
-        for (let i = 0; i < rows.length; i += 1) {
-            const row = rows[i];
-            const code = row.code;
-            result[code] = row;
+module.exports.retrieveByCode = function retrieveByCode(code) {
+  return prisma.module
+    .findUnique({
+      where: { 
+        modCode: code 
+      } 
+    })
+    .catch(function (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // The .code property can be accessed in a type-safe manner
+        if (error.code === "P2025") {
+          console.log(
+            "There is a unique constraint violation, a module cannot be retrieved with this module code",
+          );
+          throw new Error(`The module ${code} does not exists`);
         }
-        return result;
+      }
+      throw error;
     });
 };
